@@ -7,7 +7,7 @@ module F
 using ValidatedNumerics;
 using ILESolver;
 
-function solve(A, B, precision, scale)
+function solve{T}(A :: Array{Interval{T}}, B :: Array{Interval{T}}, precision, scale)
     @assert ndims(A) == 2
     @assert ndims(B) == 1
     @assert precision > 0
@@ -21,19 +21,19 @@ function solve(A, B, precision, scale)
     iter = 1
     while !start && iter < 5
         xNbefore = xNcurrent
-        newWithouScaling = equation(xNbefore, A, B) / subDifferential(A, xNbefore)
+        calculatedSubDifferential = subDifferential(A, xNbefore)
+        print(calculatedSubDifferential, "\n")
+        newWithouScaling = equation(xNbefore, A, B) / calculatedSubDifferential
         xNcurrent = xNbefore - scale * newWithouScaling
         start = true
         iter += 1
     end
-    xNcurrent
+    xNcurrent :: Array{Interval{T}}
 end
 
-function equation(xArg, aMatrix, bVector)
-    print(aMatrix, "\n", ILESolver.reverseSTI(xArg), "\n")
-    intervalMultiplication = aMatrix*ILESolver.reverseSTI(xArg)
-    print(intervalMultiplication, "\n")
-    ILESolver.STI(intervalMultiplication) - xArg + ILESolver.STI(bVector)
+function equation{T}(xArg :: Array{T}, aMatrix :: Array{Interval{T}}, bVector :: Array{Interval{T}})
+    intervalMultiplication = aMatrix*ILESolver.reverseSTI(xArg) :: Array{Interval{T}}
+    ILESolver.STI(intervalMultiplication) - xArg + ILESolver.STI(bVector) :: Array{T}
 end
 
 function initialConditions(aMatrix, bVector)
@@ -41,49 +41,53 @@ function initialConditions(aMatrix, bVector)
     aMatrixMid = map(x -> mid(x), aMatrix)
     leftMatrix = eye(systemSize) - ILESolver.constituentMatrix(aMatrixMid)
     rightVector = ILESolver.STI(bVector)
-    leftMatrix \ rightVector
+    initialInNumbers = leftMatrix \ rightVector
+    initialInNumbers
 end
 
 function subDifferential(aMatrix, xVector)
     systemSize = size(xVector, 1)
-    systemSizeHalf = systemSize/2.
-    identityMatrix = eye(aMatrix)
+    systemSizeHalf = int(systemSize/2)
+    identityMatrix = eye(systemSize)
 
     loSubDiff = map(
-        index -> calulateLoSubdifferentialRow(aMatrix[index], xVector, identityMatrix[index]),
-        1..systemSizeHalf
+        index -> calulateLoSubdifferentialRow(slicedim(aMatrix, 1, index), xVector, slicedim(identityMatrix, 1, index)),
+        range(1, systemSizeHalf)
     )
     hiSubDiff = map(
-        index -> calulateHiSubdifferentialRow(aMatrix[index], xVector, identityMatrix[index]),
-        (systemSizeHalf + 1)..systemSize
+        index -> calulateHiSubdifferentialRow(slicedim(aMatrix, 1, index), xVector, slicedim(identityMatrix, 1, index)),
+        range(1, systemSizeHalf)
     )
+    [loSubDiff hiSubDiff]
 end
 
-function calulateHiSubdifferentialRow(aVector, xVector, identityVector)
+function calulateHiSubdifferentialRow{T}(aVector :: Array{Interval{T}}, xVector :: Array{T}, identityVector :: Array{T})
     systemSize = size(xVector, 1)
-    systemSizeHalf = systemSize/2.
-    sum(map(
+    systemSizeHalf = int(systemSize/2)
+    calculatedSum = sum(map(
         index -> productHiSubDifferential(aVector[index], xVector[index], xVector[index+systemSizeHalf]),
-        1..systemSizeHalf
-    )) - identityVector
+        range(1, systemSizeHalf)
+    ))
+    calculatedSum - identityVector
 end
 
-function calulateLoSubdifferentialRow(aVector, xVector, identityVector)
+function calulateLoSubdifferentialRow{T}(aVector :: Array{Interval{T}}, xVector :: Array{T}, identityVector :: Array{T})
     systemSize = size(xVector, 1)
-    systemSizeHalf = systemSize/2.
-    -sum(map(
-        index -> productLoSubDifferential(aVector[index], xVector[index], xVector[index+systemSizeHalf]),
-        1..systemSizeHalf
-    )) - identityVector
-
+    systemSizeHalf = int(systemSize/2)
+    calculatedSum = - sum(map(
+        index -> productLoSubDifferential(aVector[index], xVector[index], xVector[index + systemSizeHalf]),
+        range(1, systemSizeHalf)
+    ))
+    print(calculatedSum, "\n", identityVector, "\n")
+    calculatedSum - identityVector
 end
 
-function productHiSubDifferential(aInterval, xLo, xHi)
+function productHiSubDifferential{T}(aInterval :: Interval{T}, xLo :: T, xHi :: T)
     aInterval.lo * dXLoPos(xLo) + aInterval.hi * dXHiNeg(xHi) - dMaxLoHi(aInterval, aInterval.lo*xLo, aInterval.hi*xHi)
 end
 
-function productHiSubDifferential(aInterval, xLoNegative, xHi)
-    - aInterval.lo * dXLoNeg(xHi) - aInterval.hi * dXHiPos(xLo) + dMaxHiLo(aInterval, aInterval.lo*xHi, aInterval.hi*xLo)
+function productLoSubDifferential{T}(aInterval :: Interval{T}, xLoNegative :: T, xHi :: T)
+    - aInterval.lo * dXLoNeg(xHi) - aInterval.hi * dXHiPos(xLoNegative) + dMaxHiLo(aInterval, aInterval.lo*xHi, aInterval.hi*xLoNegative)
 end
 
 function dXLoPos(x)
@@ -165,29 +169,29 @@ function equation(xArg, aMatrix, bVector)
     STI(aMatrix*reverseSTI(xArg)) - STI(bVector)
 end
 
-function initialConditions(aMatrix, bVector)
+function initialConditions{T}(aMatrix :: Array{Interval{T}}, bVector :: Array{Interval{T}})
     aMatrixMid = map(x -> mid(x), aMatrix)
     leftMatrix = ILESolver.constituentMatrix(aMatrixMid)
     rightVector = STI(bVector)
-    leftMatrix \ transpose(rightVector)
+    leftMatrix \ transpose(rightVector) :: Array{Interval{T}}
 end
 
 end
 
 
-function constituentMatrix(matrix)
+function constituentMatrix{T}(matrix :: Array{T, 2})
     @assert ndims(matrix) == 2
     @assert size(matrix, 1) == size(matrix, 2)
 
-    positivMatrix = map(x -> x >= 0 ? x : 0, matrix)
-    negativMatrix = map(x -> x < 0 ? -x : 0, matrix)
+    positivMatrix = map(x -> x >= zero(x) ? x : zero(x), matrix)
+    negativMatrix = map(x -> x < zero(x) ? -x : zero(x), matrix)
     [
         positivMatrix negativMatrix;
         negativMatrix positivMatrix
-    ]
+    ] :: Array{T, 2}
 end
 
-function STI(intervalVector)
+function STI{T}(intervalVector :: Array{Interval{T}})
     @assert ndims(intervalVector) == 1
 
     function stiReducer(reduced, element)
@@ -204,10 +208,10 @@ function STI(intervalVector)
         ] # Could use cat instead
     end
 
-    reduce(stiReducer, [], intervalVector)
+    reduce(stiReducer, [], intervalVector) :: Array{T}
 end
 
-function reverseSTI(intervalVector)
+function reverseSTI{T}(intervalVector :: Array{T})
     @assert ndims(intervalVector) == 1
 
     vectorSize = size(intervalVector, 1)
@@ -217,7 +221,7 @@ function reverseSTI(intervalVector)
 
     positivLoIntervalPart = map(-, negativLoIntervalPart)
     zippedIntervalParts = zip(positivLoIntervalPart, positivHiIntervalPart)
-    map(x -> @interval(x[1], x[2]), zippedIntervalParts)
+    collect(Interval{T}, map(x -> @interval(x[1], x[2]), zippedIntervalParts)) :: Array{Interval{T}}
 end
 
 end

@@ -4,14 +4,14 @@ using Base.Test;
 
 bVector = [
     @interval(-2, 2); @interval(-2, 2);
-];
+] :: Array{Interval{Float64}};
 aMatrix = [
     @interval(2, 4) @interval(-2, 1);
     @interval(-1, 2) @interval(2, 4);
-];
+] :: Array{Interval{Float64}};
 preciseX = [
     @interval(-0.333333); @interval(-0.333333);
-]
+] :: Array{Interval{Float64}};
 m = [
     1 -2;
     -0 -5.1;
