@@ -1,6 +1,8 @@
 module TestSolver
+using Base.Test;
+using ValidatedNumerics;
+using ILESolver;
 
-using Compat
 const bVector = [
     @interval(-2, 2); @interval(-2, 2);
 ] :: Array{Interval{Float64}};
@@ -13,11 +15,11 @@ const preciseX = [
 ] :: Array{Interval{Float64}};
 
 @test begin
-    @assert ILESolver.G.solve(eye(aMatrix), bVector, 0.1, 1.0) == bVector
+    ILESolver.solve("G", eye(aMatrix), bVector, 0.1, 1.0) == bVector
 end
 
 @test begin
-    @assert ILESolver.G.solve(aMatrix, bVector, 0.1, 1.0) == preciseX
+    ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0) == preciseX
 end
 
 end

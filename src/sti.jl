@@ -1,5 +1,3 @@
-module ILESolver
-
 module sti
 using ValidatedNumerics;
 
@@ -51,5 +49,4 @@ end
 
 pos = x -> x >= zero(x) ? x : zero(x)
 neg = x -> x < zero(x) ? -x : zero(x)
-end
 end

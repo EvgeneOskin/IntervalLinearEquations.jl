@@ -1,11 +1,13 @@
 module ILESolver
 using ValidatedNumerics;
-using ILESolver.F
-using ILESolver.G
-using ILESolver.System
-using ILESolver.sti
 
-function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precision, scale)
+include("Types.jl")
+include("sti.jl")
+include("F.jl")
+include("G.jl")
+using Debug
+
+@debug function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precision, scale)
     @assert ndims(A) == 2
     @assert ndims(B) == 1
     @assert precision > 0
@@ -20,20 +22,27 @@ function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precis
         case_module = ILESolver.G
     end
 
-    const system = ILESolver.System.System(
-        A, B, ILESolver.sti.STI(B), size(A, 1), size(A, 1)*2
+    system = Types.Configuration{T}(
+        A, Types.IntervalVector(B, ILESolver.sti.STI(B)),
+        size(A, 1), size(A, 1)*2
     )
-    const initial = case_module.initialConditions(system)
-    solver = ILESolver.System.Solver(
-        initial, initial, initial, system, [initial], 1
+    initial = case_module.initialConditions(system)
+    solver = Types.Solver{T}(
+        initial,
+        initial,
+        initial,
+        system,
+        [initial],
+        1
     )
 
     start = false
     while !start || solver.iternation < 5
-        solver.before = solver.current
+        solver.previous = solver.current
         calculatedSubDifferential = case_module.subDifferential(solver)
         equationValue = case_module.equation(solver)
-        solver.current = iterate(solver.before, scale, calculatedSubDifferential, equationValue)
+        @bp
+        solver.current = iterate(solver.previous, scale, calculatedSubDifferential, equationValue)
         solver.roots.push(solver.current)
         start = true
         solver.iternation += 1
@@ -43,8 +52,7 @@ end
 
 function iterate(previous, scale, subdiff, equation_value)
     new_sti = previous.sti - scale * inv(subdiff) * equation_value
-    IntervalVector(ILESolver.sti.reverseSTI(new_sti), sti)
+    Types.IntervalVector(ILESolver.sti.reverseSTI(new_sti), sti)
 end
-
 
 end

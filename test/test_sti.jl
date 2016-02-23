@@ -1,6 +1,7 @@
-module
-
-using Compat
+module TestSti
+using Base.Test;
+using ValidatedNumerics;
+using ILESolver, ILESolver.sti;
 
 const bVector = [
     @interval(-2, 2); @interval(-2, 2);
@@ -11,11 +12,14 @@ const m = [
 ];
 
 @test begin
-    @assert m*bVector == ILESolver.reverseSTI(ILESolver.constituentMatrix(m)*ILESolver.STI(bVector))
+    interval_product = m*bVector
+    sti_product = ILESolver.sti.reverseSTI(ILESolver.sti.constituentMatrix(m)*ILESolver.sti.STI(bVector))
+    interval_product == sti_product
 end
 
 @test begin
-    @assert bVector == ILESolver.reverseSTI(ILESolver.STI(bVector))
+    transformed = ILESolver.sti.reverseSTI(ILESolver.sti.STI(bVector))
+    bVector == transformed
 end
 
 end
