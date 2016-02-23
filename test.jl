@@ -21,4 +21,4 @@ m = [
 
 @test bVector == ILESolver.reverseSTI(ILESolver.STI(bVector))
 
-print(ILESolver.F.solve(aMatrix, bVector, 0.1, 1), "\n")
+print(ILESolver.G.solve(aMatrix, bVector, 0.1, 1.0), "\n")
