@@ -37,11 +37,14 @@ using Debug
     )
 
     start = false
-    while !start || solver.iternation < 5
+    while !start || solver.iternation < 2
         solver.previous = solver.current
         calculatedSubDifferential = case_module.subDifferential(solver)
         equationValue = case_module.equation(solver)
         @bp
+        if det(calculatedSubDifferential) == 0
+            break
+        end
         solver.current = iterate(solver.previous, scale, calculatedSubDifferential, equationValue)
         solver.roots.push(solver.current)
         start = true
