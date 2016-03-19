@@ -39,14 +39,14 @@ function calulateHiSubdifferentialRow{T}(aVector :: Array{Interval{T}}, xVector 
     calulateSubdifferentialRowPart(SubDiff.productHiSubDifferential, 1, aVector, xVector, _)
 end
 
-@debug function calulateSubdifferentialRowPart{T}(partFunction, sumFactor, aVector :: Array{Interval{T}}, xVector :: Array{T}, _ :: Array{T})
+function calulateSubdifferentialRowPart{T}(partFunction, sumFactor, aVector :: Array{Interval{T}}, xVector :: Array{T}, _ :: Array{T})
     systemSize = size(xVector, 1)
     systemSizeHalf = int(systemSize/2)
     mapped =  map(
         index -> partFunction(aVector[index], xVector[index], xVector[index + systemSizeHalf]),
         range(1, systemSizeHalf)
     )
-    calculatedSum = sumFactor * sum(mapped)
+    calculatedSum = sumFactor * mapped
     stiedCalculatedSum = sti.STI(calculatedSum)
     transpose(stiedCalculatedSum)
 end

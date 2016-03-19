@@ -1,7 +1,6 @@
 module F
 
 using ValidatedNumerics;
-using Debug
 include("Types.jl")
 include("sti.jl")
 
@@ -44,10 +43,10 @@ function calulateSubdifferentialRowPart{T}(partFunction, sumFactor, aVector :: A
     systemSize = size(xVector, 1)
     systemSizeHalf = int(systemSize/2)
     identityVector = transpose(identityVector)
-    calculatedSum = sumFactor * sum(map(
+    calculatedSum = sumFactor * map(
         index -> partFunction(aVector[index], xVector[index], xVector[index + systemSizeHalf]),
         range(1, systemSizeHalf)
-    ))
+    )
     stiedCalculatedSum = sti.STI(calculatedSum)
     transpose(stiedCalculatedSum - identityVector)
 end

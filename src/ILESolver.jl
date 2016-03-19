@@ -5,9 +5,8 @@ include("Types.jl")
 include("sti.jl")
 include("F.jl")
 include("G.jl")
-using Debug
 
-@debug function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precision, scale)
+function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precision, scale)
     @assert ndims(A) == 2
     @assert ndims(B) == 1
     @assert precision > 0
@@ -37,16 +36,15 @@ using Debug
     )
 
     start = false
-    while !start || solver.iternation < 2
+    while !start || solver.iternation < 10
         solver.previous = solver.current
         calculatedSubDifferential = case_module.subDifferential(solver)
         equationValue = case_module.equation(solver)
-        @bp
         if det(calculatedSubDifferential) == 0
             break
         end
         solver.current = iterate(solver.previous, scale, calculatedSubDifferential, equationValue)
-        solver.roots.push(solver.current)
+        solver.roots = vcat(solver.roots, [solver.current])
         start = true
         solver.iternation += 1
     end
@@ -55,7 +53,7 @@ end
 
 function iterate(previous, scale, subdiff, equation_value)
     new_sti = previous.sti - scale * inv(subdiff) * equation_value
-    Types.IntervalVector(ILESolver.sti.reverseSTI(new_sti), sti)
+    Types.IntervalVector(ILESolver.sti.reverseSTI(new_sti), new_sti)
 end
 
 end
