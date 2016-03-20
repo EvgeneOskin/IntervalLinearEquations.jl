@@ -1,4 +1,6 @@
-module TestSti
+module StiTests
+using FactCheck
+
 using Base.Test;
 using ValidatedNumerics;
 using ILESolver, ILESolver.sti;
@@ -11,15 +13,15 @@ const m = [
     -0 -5.1;
 ];
 
-@test begin
+facts("Calculate costrituent matrix") do
     interval_product = m*bVector
     sti_product = ILESolver.sti.reverseSTI(ILESolver.sti.constituentMatrix(m)*ILESolver.sti.STI(bVector))
-    interval_product == sti_product
+    @fact interval_product --> sti_product
 end
 
-@test begin
+facts("Calculate sti and reverse sti") do
     transformed = ILESolver.sti.reverseSTI(ILESolver.sti.STI(bVector))
-    bVector == transformed
+    @fact bVector --> transformed
 end
 
 end

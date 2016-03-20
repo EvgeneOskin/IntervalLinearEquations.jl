@@ -1,5 +1,6 @@
-module TestSolver
+module SolverTests
 using Base.Test;
+using FactCheck;
 using ValidatedNumerics;
 using ILESolver;
 using Debug;
@@ -10,8 +11,7 @@ function interval_approx_eq(a_interval :: Interval{Float64}, b_interval :: Inter
 end
 
 
-function test_2x2_number_matrix()
-
+facts("Solve 2x2 system with number matrix") do
     bVector = [
         @interval(-2.0, 2.0); @interval(-2.0, 2.0);
     ] :: Array{Interval{Float64}};
@@ -20,13 +20,11 @@ function test_2x2_number_matrix()
         @interval(-1, 2) @interval(2, 4);
     ] :: Array{Interval{Float64}};
 
-    @test begin
-        result = ILESolver.solve("G", eye(aMatrix), bVector, 0.1, 1.0)
-        result == bVector
-    end
+    result = ILESolver.solve("G", eye(aMatrix), bVector, 0.1, 1.0)
+    @fact result --> bVector
 end
 
-function test_2x2_interval_matrix()
+facts("Solve 2x2 system with interval matrix") do
     bVector = [
         @interval(-2.0, 2.0); @interval(-2.0, 2.0);
     ] :: Array{Interval{Float64}};
@@ -39,14 +37,12 @@ function test_2x2_interval_matrix()
         @interval(-0.33333333333333337, 0.33333333333333337);
     ] :: Array{Interval{Float64}};
 
-    @test begin
-        solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
-        result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX))
-        all(result)
-    end
+    solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
+    result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX))
+    @fact all(result) --> true
 end
 
-@debug function test_2x2_interval_dual_matrix()
+facts("Solve 2x2 system with dual interval matrix") do
     bVector = [
         @interval(-2.0, 2.0); @interval(-2.0, 2.0);
     ] :: Array{Interval{Float64}};
@@ -59,15 +55,12 @@ end
         @interval(-1.0, 1.0);
     ] :: Array{Interval{Float64}};
 
-    @test begin
         solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
         result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX))
-        @bp
-        all(result)
-    end
+    @fact all(result) --> true
 end
 
-@debug function test_7x7_interval_matrix()
+facts("Solve 7x7 system with interval matrix") do
     bVector = [
         @interval(-10, 95);
         @interval(35, 14);
@@ -96,18 +89,8 @@ end
         @interval(5.43086238, -0.674008);
     ] :: Array{Interval{Float64}};
 
-    @test begin
-        solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
-        result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX))
-        @bp
-        all(result)
-    end
+    solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
+    result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX))
+    @fact all(result) --> true
 end
-
-
 end
-
-TestSolver.test_2x2_number_matrix()
-TestSolver.test_2x2_interval_matrix()
-TestSolver.test_2x2_interval_dual_matrix()
-TestSolver.test_7x7_interval_matrix()
