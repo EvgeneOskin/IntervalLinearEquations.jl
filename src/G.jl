@@ -4,7 +4,6 @@ using ValidatedNumerics;
 include("Types.jl")
 include("SubDiff.jl")
 include("sti.jl")
-using Debug
 
 function equation(solver)
     sti.STI(solver.system.a*solver.previous.intervals) - solver.system.b.sti
