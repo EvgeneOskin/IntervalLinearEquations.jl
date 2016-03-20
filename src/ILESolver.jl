@@ -35,8 +35,8 @@ function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precis
         1
     )
 
-    start = false
-    while !start || solver.iternation < 10
+    is_initial = true
+    while is_initial || solver.iternation < 10
         solver.previous = solver.current
         calculatedSubDifferential = case_module.subDifferential(solver)
         equationValue = case_module.equation(solver)
@@ -45,7 +45,7 @@ function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precis
         end
         solver.current = iterate(solver.previous, scale, calculatedSubDifferential, equationValue)
         solver.roots = vcat(solver.roots, [solver.current])
-        start = true
+        is_initial = false
         solver.iternation += 1
     end
     solver.current.intervals
