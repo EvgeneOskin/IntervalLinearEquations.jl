@@ -1,6 +1,9 @@
 module sti
 using ValidatedNumerics;
 
+pos = x -> x >= zero(x) ? x : zero(x)
+neg = x -> x < zero(x) ? -x : zero(x)
+
 function constituentMatrix{T}(matrix :: Array{T, 2})
     @assert ndims(matrix) == 2
     @assert size(matrix, 1) == size(matrix, 2)
@@ -22,12 +25,12 @@ function STI{T}(intervalVector :: Array{Interval{T}})
             return [-element.lo; element.hi]
         end
         halfReducedSize = int(reducedSize/2)
-        [
-            slice(reduced, 1:halfReducedSize)
-            [-element.lo]
-            slice(reduced, (1 + halfReducedSize):reducedSize)
+        vcat(
+            slice(reduced, 1:halfReducedSize),
+            [-element.lo],
+            slice(reduced, (1 + halfReducedSize):reducedSize),
             [element.hi]
-        ] # Could use cat instead
+        ) # Could use cat instead
     end
 
     reduce(stiReducer, [], intervalVector) :: Array{T}
@@ -46,7 +49,4 @@ function reverseSTI{T}(intervalVector :: Array{T})
     collect(Interval{T}, map(x -> @interval(x[1], x[2]), zippedIntervalParts)) :: Array{Interval{T}}
 end
 
-
-pos = x -> x >= zero(x) ? x : zero(x)
-neg = x -> x < zero(x) ? -x : zero(x)
 end

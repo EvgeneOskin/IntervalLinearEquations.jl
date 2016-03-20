@@ -2,6 +2,7 @@ module F
 
 using ValidatedNumerics;
 include("Types.jl")
+include("SubDiff.jl")
 include("sti.jl")
 
 function equation(solver)
