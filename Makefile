@@ -8,4 +8,4 @@ coverage:
 	julia -e 'cd(Pkg.dir("ILESolver")); Pkg.add("ILESolver"); using Coverage; @show get_summary(Coverage.process_folder())'
 
 lint:
-	julia -e 'using Lint; for i in readdir("src") lintfile(string("src/", i)) end'
+	julia -e 'using Lint; for i in readdir("src") if ismatch(r".*\.jl$$", i) lintfile(string("src/", i)) end end'

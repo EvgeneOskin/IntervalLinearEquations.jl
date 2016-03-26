@@ -43,7 +43,7 @@ function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precis
     solver.current.intervals
 end
 
-function initialize(case_module, system)
+function initialize{T}(case_module, system :: Types.Configuration{T})
     initialInNumbers = case_module.initialConditions(system)
     initial = Types.IntervalVector(sti.reverseSTI(initialInNumbers), initialInNumbers)
     solver = Types.Solver{T}(

@@ -20,7 +20,7 @@ type Solver{T}
     previous :: IntervalVector{T}
     initial :: IntervalVector{T}
     system :: Configuration{T}
-    roots :: Array{IntervalVector{T}}
+    roots :: Array{IntervalVector{T}, 1}
     iternation :: Int
 end
 
