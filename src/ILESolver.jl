@@ -16,24 +16,16 @@ function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precis
     @assert name == "F" || name == "G"
 
     if name == "F"
-        case_module = ILESolver.F
+        case_module = F
     else
-        case_module = ILESolver.G
+        case_module = G
     end
 
     system = Types.Configuration{T}(
         A, Types.IntervalVector(B, ILESolver.sti.STI(B)),
         size(A, 1), size(A, 1)*2
     )
-    initial = case_module.initialConditions(system)
-    solver = Types.Solver{T}(
-        initial,
-        initial,
-        initial,
-        system,
-        [initial],
-        1
-    )
+    solver = initialize(case_module, system)
 
     is_initial = true
     while is_initial || solver.iternation < 10
@@ -49,6 +41,20 @@ function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precis
         solver.iternation += 1
     end
     solver.current.intervals
+end
+
+function initialize{T}(case_module, system :: Types.Configuration{T})
+    initialInNumbers = case_module.initialConditions(system)
+    initial = Types.IntervalVector(sti.reverseSTI(initialInNumbers), initialInNumbers)
+    solver = Types.Solver{T}(
+        initial,
+        initial,
+        initial,
+        system,
+        [initial],
+        1
+    )
+    solver
 end
 
 function iterate(previous, scale, subdiff, equation_value)
