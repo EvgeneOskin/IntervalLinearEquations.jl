@@ -16,11 +16,11 @@ end
 
 
 type Solver{T}
-    current
-    previous
-    initial
+    current :: IntervalVector{T}
+    previous :: IntervalVector{T}
+    initial :: IntervalVector{T}
     system :: Configuration{T}
-    roots
+    roots :: Array{IntervalVector{T}}
     iternation :: Int
 end
 

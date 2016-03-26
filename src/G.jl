@@ -1,7 +1,6 @@
 module G
 
 using ValidatedNumerics;
-include("Types.jl")
 include("SubDiff.jl")
 include("sti.jl")
 
@@ -14,7 +13,7 @@ function initialConditions(system)
     leftMatrix = sti.constituentMatrix(aMatrixMid)
     rightVector = system.b.sti
     initialInNumbers = leftMatrix \ rightVector
-    Types.IntervalVector(sti.reverseSTI(initialInNumbers), initialInNumbers)
+    initialInNumbers
 end
 
 function subDifferential(solver)
