@@ -24,6 +24,21 @@ facts("Solve 2x2 system with number matrix") do
     @fact result --> bVector
 end
 
+facts("Solve 2x2 system with random matrix") do
+    xVector = [
+        @interval(-1.0, 2.0); @interval(-1.0, 2.0);
+    ] :: Array{Interval{Float64}};
+    aMatrix = [
+        @interval(-2, 4) @interval(-3, 0);
+        @interval(-1, 0) @interval(2, 5);
+    ] :: Array{Interval{Float64}};
+    bVector = aMatrix * xVector
+
+    solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
+    result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, xVector))
+    @fact all(result) --> true
+end
+
 facts("Solve 2x2 system with interval matrix") do
     bVector = [
         @interval(-2.0, 2.0); @interval(-2.0, 2.0);
