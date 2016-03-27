@@ -3,7 +3,6 @@ using Base.Test;
 using FactCheck;
 using ValidatedNumerics;
 using ILESolver;
-using Debug;
 
 function interval_approx_eq(a_interval :: Interval{Float64}, b_interval :: Interval{Float64})
     isapprox(a_interval.lo, b_interval.lo) &&
@@ -20,8 +19,24 @@ facts("Solve 2x2 system with number matrix") do
         @interval(-1, 2) @interval(2, 4);
     ] :: Array{Interval{Float64}};
 
-    result = ILESolver.solve("G", eye(aMatrix), bVector, 0.1, 1.0)
+    result = ILESolver.solve("G", eye(aMatrix), bVector, 0.1, 10, 1.0)
     @fact result --> bVector
+end
+
+facts("Solve 2x2 system with random matrix") do
+    xVector = [
+        @interval(-1.0, 2.0); @interval(-1.0, 2.0);
+    ] :: Array{Interval{Float64}};
+    aMatrix = [
+        @interval(-2, 4) @interval(-3, 0);
+        @interval(-1, 0) @interval(2, 5);
+    ] :: Array{Interval{Float64}};
+    bVector = aMatrix * xVector
+
+    solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 10, 1.0)
+    bFromSolution = aMatrix * solution
+    @fact all(map(interval_approx_eq, bVector, bFromSolution)) --> true
+    @fact all(map(interval_approx_eq, solution, xVector)) --> true
 end
 
 facts("Solve 2x2 system with interval matrix") do
@@ -37,9 +52,10 @@ facts("Solve 2x2 system with interval matrix") do
         @interval(-0.33333333333333337, 0.33333333333333337);
     ] :: Array{Interval{Float64}};
 
-    solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
-    result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX))
-    @fact all(result) --> true
+    solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 10, 1.0)
+    bFromSolution = aMatrix * solution
+    @fact all(map(interval_approx_eq, bVector, bFromSolution)) --> true
+    @fact all(map(interval_approx_eq, solution, preciseX)) --> true
 end
 
 facts("Solve 2x2 system with dual interval matrix") do
@@ -51,24 +67,28 @@ facts("Solve 2x2 system with dual interval matrix") do
         @interval(2, -1) @interval(4, 2);
     ] :: Array{Interval{Float64}};
     preciseX = [
-        @interval(-1.0, 1.0);
-        @interval(-1.0, 1.0);
+        @interval(-0.33333333333333337, 0.33333333333333337);
+        @interval(-0.33333333333333337, 0.33333333333333337);
+        # MARK! Use original root cause of dual matrix is not change root!
+        # @interval(-1.0, 1.0);
+        # @interval(-1.0, 1.0);
     ] :: Array{Interval{Float64}};
 
-        solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
-        result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX))
-    @fact all(result) --> true
+    solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 10, 1.0)
+    bFromSolution = aMatrix * solution
+    @fact all(map(interval_approx_eq, bVector, bFromSolution)) --> true
+    @fact all(map(interval_approx_eq, solution, preciseX)) --> true
 end
 
 facts("Solve 7x7 system with interval matrix") do
     bVector = [
-        @interval(-10, 95);
-        @interval(35, 14);
-        @interval(-6, 2);
-        @interval(30, 7);
-        @interval(4, 95);
-        @interval(-6, 46);
-        @interval(-2, 65);
+        @interval(-347.5265180000002, 399.17321294000016);
+        @interval(-230.54111184000013, 310.8722265000002);
+        @interval(-891.2806088000004, 888.7951626800003);
+        @interval(-119.23151460000004, 173.51377802000005);
+        @interval(-191.1484819000001, 394.6258187600002);
+        @interval(-103.38426236000002, 147.09842838000006);
+        @interval(-320.0635949000001, 749.4182123600002);
     ] :: Array{Interval{Float64}};
     aMatrix = [
         @interval(4, 6) @interval(-9, 0) @interval(0, 12) @interval(2, 3) @interval(5, 9) @interval(-23, -9) @interval(15, 23);
@@ -89,8 +109,9 @@ facts("Solve 7x7 system with interval matrix") do
         @interval(5.43086238, -0.674008);
     ] :: Array{Interval{Float64}};
 
-    solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
-    result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX))
-    @fact all(result) --> true
+    solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 10, 1.0)
+    bFromSolution = aMatrix * solution
+    @fact all(map(interval_approx_eq, bVector, bFromSolution)) --> true
+    @fact all(map(interval_approx_eq, solution, preciseX)) --> true
 end
 end

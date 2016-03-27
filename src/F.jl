@@ -1,7 +1,6 @@
 module F
 
 using ValidatedNumerics;
-include("Types.jl")
 include("SubDiff.jl")
 include("sti.jl")
 
@@ -15,7 +14,6 @@ function initialConditions(system)
     leftMatrix = eye(system.sti_size) - sti.constituentMatrix(aMatrixMid)
     rightVector = system.b.sti
     initialInNumbers = leftMatrix \ rightVector
-    Types.IntervalVector(sti.reverseSTI(initialInNumbers), initialInNumbers)
 end
 
 function subDifferential(solver)
@@ -42,7 +40,7 @@ end
 
 function calulateSubdifferentialRowPart{T}(partFunction, sumFactor, aVector :: Array{Interval{T}}, xVector :: Array{T}, identityVector :: Array{T})
     systemSize = size(xVector, 1)
-    systemSizeHalf = int(systemSize/2)
+    systemSizeHalf = Int(systemSize/2)
     identityVector = transpose(identityVector)
     calculatedSum = sumFactor * map(
         index -> partFunction(aVector[index], xVector[index], xVector[index + systemSizeHalf]),

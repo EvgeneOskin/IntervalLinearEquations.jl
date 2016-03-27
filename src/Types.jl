@@ -16,12 +16,17 @@ end
 
 
 type Solver{T}
-    current
-    previous
-    initial
+    current :: IntervalVector{T}
+    previous :: IntervalVector{T}
+    initial :: IntervalVector{T}
     system :: Configuration{T}
-    roots
-    iternation :: Int
+    roots :: Array{IntervalVector{T}, 1}
+    iteration :: Int
+end
+
+immutable StopConditions
+    precision :: AbstractFloat
+    max_iterations :: Int
 end
 
 end

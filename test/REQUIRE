@@ -1,4 +1,6 @@
-julia 0.3
+julia 0.4
 FactCheck
 Lint
 Coverage
+Debug
+Lint
