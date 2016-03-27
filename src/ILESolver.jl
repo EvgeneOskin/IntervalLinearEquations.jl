@@ -6,26 +6,12 @@ include("sti.jl")
 include("F.jl")
 include("G.jl")
 
-function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precision, scale)
-    @assert ndims(A) == 2
-    @assert ndims(B) == 1
-    @assert precision > 0
+function solve{T}(name :: AbstractString, A :: Array{Interval{T}, 2}, B :: Array{Interval{T}, 1}, precision, scale)
+    @assert precision > 0.0
     @assert scale <= 1.0 && scale > 0
-    @assert size(A, 1) == size(A, 2)
-    @assert size(A, 1) == size(B, 1)
-    @assert name == "F" || name == "G"
 
-    if name == "F"
-        case_module = F
-    else
-        case_module = G
-    end
-
-    system = Types.Configuration{T}(
-        A, Types.IntervalVector(B, ILESolver.sti.STI(B)),
-        size(A, 1), size(A, 1)*2
-    )
-    solver = initialize(case_module, system)
+    case_module = get_module(name)
+    solver = initialize(case_module, A, B)
 
     is_initial = true
     while is_initial || solver.iternation < 10
@@ -43,7 +29,15 @@ function solve{T}(name, A :: Array{Interval{T}}, B :: Array{Interval{T}}, precis
     solver.current.intervals
 end
 
-function initialize{T}(case_module, system :: Types.Configuration{T})
+function initialize{T}(case_module, A :: Array{Interval{T}, 2}, B :: Array{Interval{T}, 1})
+    @assert size(A, 1) == size(A, 2)
+    @assert size(A, 1) == size(B, 1)
+
+
+    system = Types.Configuration{T}(
+        A, Types.IntervalVector(B, ILESolver.sti.STI(B)),
+        size(A, 1), size(A, 1)*2
+    )
     initialInNumbers = case_module.initialConditions(system)
     initial = Types.IntervalVector(sti.reverseSTI(initialInNumbers), initialInNumbers)
     solver = Types.Solver{T}(
@@ -60,6 +54,16 @@ end
 function iterate(previous, scale, subdiff, equation_value)
     new_sti = previous.sti - scale * inv(subdiff) * equation_value
     Types.IntervalVector(ILESolver.sti.reverseSTI(new_sti), new_sti)
+end
+
+function get_module(name :: AbstractString)
+    @assert name == "F" || name == "G"
+
+    if name == "F"
+        F
+    else
+        G
+    end
 end
 
 end

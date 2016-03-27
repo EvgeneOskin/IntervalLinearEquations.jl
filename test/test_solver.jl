@@ -3,7 +3,6 @@ using Base.Test;
 using FactCheck;
 using ValidatedNumerics;
 using ILESolver;
-using Debug;
 
 function interval_approx_eq(a_interval :: Interval{Float64}, b_interval :: Interval{Float64})
     isapprox(a_interval.lo, b_interval.lo) &&
@@ -35,8 +34,7 @@ facts("Solve 2x2 system with random matrix") do
     bVector = aMatrix * xVector
 
     solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
-    result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, xVector))
-    @fact all(result) --> true
+    @fact all((x) -> interval_approx_eq(x[1], x[2]), zip(solution, xVector)) --> true
 end
 
 facts("Solve 2x2 system with interval matrix") do
@@ -53,8 +51,7 @@ facts("Solve 2x2 system with interval matrix") do
     ] :: Array{Interval{Float64}};
 
     solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
-    result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX))
-    @fact all(result) --> true
+    @fact all((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX)) --> true
 end
 
 facts("Solve 2x2 system with dual interval matrix") do
@@ -70,9 +67,8 @@ facts("Solve 2x2 system with dual interval matrix") do
         @interval(-1.0, 1.0);
     ] :: Array{Interval{Float64}};
 
-        solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
-        result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX))
-    @fact all(result) --> true
+    solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
+    @fact all((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX)) --> true
 end
 
 facts("Solve 7x7 system with interval matrix") do
@@ -105,7 +101,6 @@ facts("Solve 7x7 system with interval matrix") do
     ] :: Array{Interval{Float64}};
 
     solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 1.0)
-    result = map((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX))
-    @fact all(result) --> true
+    @fact all((x) -> interval_approx_eq(x[1], x[2]), zip(solution, preciseX)) --> true
 end
 end
