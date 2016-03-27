@@ -21,7 +21,12 @@ type Solver{T}
     initial :: IntervalVector{T}
     system :: Configuration{T}
     roots :: Array{IntervalVector{T}, 1}
-    iternation :: Int
+    iteration :: Int
+end
+
+immutable StopConditions
+    precision :: AbstractFloat
+    max_iterations :: Int
 end
 
 end

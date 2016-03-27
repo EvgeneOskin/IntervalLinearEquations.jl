@@ -24,7 +24,7 @@ function STI{T}(intervalVector :: Array{Interval{T}})
         if (reducedSize == 0)
             return [-element.lo; element.hi]
         end
-        halfReducedSize = int(reducedSize/2)
+        halfReducedSize = Int(reducedSize/2)
         vcat(
             slice(reduced, 1:halfReducedSize),
             [-element.lo],
@@ -40,7 +40,7 @@ function reverseSTI{T}(intervalVector :: Array{T})
     @assert ndims(intervalVector) == 1
 
     vectorSize = size(intervalVector, 1)
-    halfVectorSize = int(vectorSize/2)
+    halfVectorSize = Int(vectorSize/2)
     negativLoIntervalPart = slice(intervalVector, 1:halfVectorSize)
     positivHiIntervalPart = slice(intervalVector, (1 + halfVectorSize):vectorSize)
 
