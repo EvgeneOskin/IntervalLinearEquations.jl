@@ -1,4 +1,4 @@
-module ILESolver
+module IntervalLinearEquations
 using ValidatedNumerics;
 
 include("Types.jl")
@@ -35,7 +35,7 @@ function initialize{T}(case_module, A :: Array{Interval{T}, 2}, B :: Array{Inter
     @assert size(A, 1) == size(B, 1)
 
     system = Types.Configuration{T}(
-        A, Types.IntervalVector(B, ILESolver.sti.STI(B)),
+        A, Types.IntervalVector(B, IntervalLinearEquations.sti.STI(B)),
         size(A, 1), size(A, 1)*2
     )
     initialInNumbers = case_module.initialConditions(system)
@@ -69,7 +69,7 @@ end
 
 function iterate(previous, scale, subdiff, equation_value)
     new_sti = previous.sti - scale * inv(subdiff) * equation_value
-    Types.IntervalVector(ILESolver.sti.reverseSTI(new_sti), new_sti)
+    Types.IntervalVector(IntervalLinearEquations.sti.reverseSTI(new_sti), new_sti)
 end
 
 function get_module(name :: AbstractString)
