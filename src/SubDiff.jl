@@ -27,9 +27,9 @@ end
 
 function dXLoNeg(x)
     if x < 0
-        @interval(1, 0)
+        @interval(0, 1)
     elseif x == 0
-        @interval(0.5, 0)
+        @interval(0, 0.5)
     else
         @interval(0)
     end
@@ -47,9 +47,9 @@ end
 
 function dXHiNeg(x)
     if x < 0
-        @interval(0, -1)
+        @interval(-1, 0)
     elseif x == 0
-        @interval(0, -0.5)
+        @interval(-0.5, 0)
     else
         @interval(0)
     end

@@ -46,7 +46,11 @@ function reverseSTI{T}(intervalVector :: Array{T})
 
     positivLoIntervalPart = map(-, negativLoIntervalPart)
     zippedIntervalParts = zip(positivLoIntervalPart, positivHiIntervalPart)
-    collect(Interval{T}, map(x -> @interval(x[1], x[2]), zippedIntervalParts)) :: Array{Interval{T}}
+    collect(Interval{T}, map(x -> safeInterval(x[1], x[2]), zippedIntervalParts)) :: Array{Interval{T}}
+end
+
+function safeInterval(a, b)
+    a < b ? @interval(a, b) : @interval(b, a)
 end
 
 end
