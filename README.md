@@ -19,7 +19,7 @@ julia> a = [
             @interval(2, 4) @interval(-2, 1);
             @interval(-1, 2) @interval(2, 4);
        ]
-julia> solution = ILESolver.solve(
+julia> solution = IntervalLinearEquations.solve(
         "G",  # G to solve Ax=b, F to solve Ax - x = b
         a,  # Matrix
         b,  # Vector
@@ -47,7 +47,7 @@ b =
     ]
 x = A \ b
 A * x != b
-x = ILESolver.solve("G", a, b, 0.1, 10, 1.0)
+x = IntervalLinearEquations.solve("G", a, b, 0.1, 10, 1.0)
 A * x == b
 ```
 
