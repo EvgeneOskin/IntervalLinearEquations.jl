@@ -1,4 +1,4 @@
-PROJECT_NAME=ILESolver
+PROJECT_NAME=IntervalLinearEquations
 .PHONY: test lint coverage
 
 test:
