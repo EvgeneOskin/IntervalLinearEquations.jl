@@ -1,4 +1,4 @@
 *.cov
 *~
 .DS_Store
-ILESolver.jl
+IntervalLinearEquations.jl
