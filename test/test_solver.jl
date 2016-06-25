@@ -58,28 +58,6 @@ facts("Solve 2x2 system with interval matrix") do
     @fact all(map(interval_approx_eq, solution, preciseX)) --> true
 end
 
-facts("Solve 2x2 system with dual interval matrix") do
-    bVector = [
-        @interval(-2.0, 2.0); @interval(-2.0, 2.0);
-    ] :: Array{Interval{Float64}};
-    aMatrix = [
-        @interval(4, 2) @interval(1, -2);
-        @interval(2, -1) @interval(4, 2);
-    ] :: Array{Interval{Float64}};
-    preciseX = [
-        @interval(-0.33333333333333337, 0.33333333333333337);
-        @interval(-0.33333333333333337, 0.33333333333333337);
-        # MARK! Use original root cause of dual matrix is not change root!
-        # @interval(-1.0, 1.0);
-        # @interval(-1.0, 1.0);
-    ] :: Array{Interval{Float64}};
-
-    solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 10, 1.0)
-    bFromSolution = aMatrix * solution
-    @fact all(map(interval_approx_eq, bVector, bFromSolution)) --> true
-    @fact all(map(interval_approx_eq, solution, preciseX)) --> true
-end
-
 facts("Solve 7x7 system with interval matrix") do
     bVector = [
         @interval(-347.5265180000002, 399.17321294000016);
@@ -101,12 +79,12 @@ facts("Solve 7x7 system with interval matrix") do
     ] :: Array{Interval{Float64}};
     preciseX = [
         @interval(-1.2247431, 0.5054298);
-        @interval(18.2644433, -9.517504);
+        @interval(-9.517504, 18.2644433);
         @interval(-0.0281865, 1.6075521);
-        @interval(16.4076957, -14.45534);
+        @interval(-14.45534, 16.4076957);
         @interval(-1.3435652, 3.9882184);
         @interval(-3.5289385, 4.5434583);
-        @interval(5.43086238, -0.674008);
+        @interval(-0.674008, 5.43086238);
     ] :: Array{Interval{Float64}};
 
     solution = ILESolver.solve("G", aMatrix, bVector, 0.1, 10, 1.0)
