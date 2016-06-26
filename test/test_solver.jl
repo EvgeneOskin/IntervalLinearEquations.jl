@@ -8,7 +8,7 @@ function interval_approx_eq(a_interval :: Interval{Float64}, b_interval :: Inter
     isapprox(a_interval.lo, b_interval.lo) &&
     isapprox(a_interval.hi, b_interval.hi)
 end
-
+roundly_equal(expected) = (actual) -> all(map(interval_approx_eq, expected, actual))
 
 facts("Solve 2x2 system with number matrix") do
     bVector = [
@@ -35,8 +35,8 @@ facts("Solve 2x2 system with random matrix") do
 
     solution = IntervalLinearEquations.solve("G", aMatrix, bVector, 0.1, 10, 1.0)
     bFromSolution = aMatrix * solution
-    @fact all(map(interval_approx_eq, bVector, bFromSolution)) --> true
-    @fact all(map(interval_approx_eq, solution, xVector)) --> true
+    @fact bFromSolution --> roundly_equal(bVector)
+    @fact solution --> roundly_equal(xVector)
 end
 
 facts("Solve 2x2 system with interval matrix") do
@@ -48,14 +48,14 @@ facts("Solve 2x2 system with interval matrix") do
         @interval(-1, 2) @interval(2, 4);
     ] :: Array{Interval{Float64}};
     preciseX = [
-        @interval(-0.33333333333333337, 0.33333333333333337);
-        @interval(-0.33333333333333337, 0.33333333333333337);
+        @interval(-1/3, 1/3);
+        @interval(-1/3, 1/3);
     ] :: Array{Interval{Float64}};
 
     solution = IntervalLinearEquations.solve("G", aMatrix, bVector, 0.1, 10, 1.0)
     bFromSolution = aMatrix * solution
-    @fact all(map(interval_approx_eq, bVector, bFromSolution)) --> true
-    @fact all(map(interval_approx_eq, solution, preciseX)) --> true
+    @fact bFromSolution --> roundly_equal(bVector)
+    @fact solution --> roundly_equal(preciseX)
 end
 
 end
